@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# StageRig OS: is this computer set up for playing live? Only looks, changes nothing.
+# Run it as yourself, not with sudo:  stagerig-os-check
+
+bad=0; warn=0
+ok()   { printf '  ok    %s\n' "$*"; }
+look() { printf '  LOOK  %s\n' "$*"; warn=$((warn+1)); }
+fix()  { printf '  FIX   %s\n' "$*"; bad=$((bad+1)); }
+section() { printf '\n%s\n' "$*"; }
+
+[ "$(id -u)" -ne 0 ] || { echo "Run it as yourself, not with sudo." >&2; exit 2; }
+cmdline=$(cat /proc/cmdline)
+
+section "System"
+. /etc/os-release
+[ "${ID:-}" = ubuntu ] && [ "${VERSION_ID:-}" = 26.04 ] && ok "$PRETTY_NAME, kernel $(uname -r)" \
+    || look "$PRETTY_NAME, kernel $(uname -r): StageRig OS is made for Ubuntu 26.04"
+
+section "Kernel"
+if [ "$(cat /sys/kernel/realtime 2>/dev/null)" = 1 ]; then ok "realtime kernel"
+elif grep -qw 'preempt=full' <<<"$cmdline"; then ok "full preemption (preempt=full)"
+else fix "preempt=full is not on the kernel command line: restart; if it stays, sudo update-grub and restart"; fi
+grep -qw threadirqs <<<"$cmdline" && ok "threaded interrupts (threadirqs)" \
+    || fix "threadirqs is not on the kernel command line: restart; if it stays, sudo update-grub and restart"
+[ "$(cat /sys/module/usbcore/parameters/autosuspend 2>/dev/null)" = -1 ] && ok "USB devices are never put to sleep" \
+    || fix "USB autosuspend is on: restart; if it stays, sudo update-grub and restart"
+[ -e /dev/ntsync ] && ok "ntsync is loaded (faster Windows plugins)" \
+    || look "no /dev/ntsync: Windows plugins use more CPU (VST Environment > Health > Speed up plugins)"
+sw=$(cat /proc/sys/vm/swappiness)
+[ "$sw" -le 10 ] && ok "swappiness $sw" || look "swappiness is $sw (StageRig OS sets 10)"
+
+section "Realtime permission"
+rt=$(ulimit -r)
+if [ "$rt" = unlimited ] || [ "$rt" -ge 70 ]; then ok "realtime priority up to $rt"
+else fix "realtime priority limit is $rt: log out and back in (see /etc/security/limits.d/30-stagerig-audio.conf)"; fi
+ml=$(ulimit -l)
+if [ "$ml" = unlimited ]; then ok "locked memory: unlimited"
+else look "locked memory limit is $ml kB: log out and back in"; fi
+
+section "Sound system"
+for s in pipewire pipewire-pulse wireplumber; do
+    systemctl --user is-active -q "$s" 2>/dev/null && ok "$s is running" || fix "$s is not running"
+done
+if command -v pw-metadata >/dev/null; then
+    m=$(pw-metadata -n settings 0 2>/dev/null)
+    val() { sed -n "s/.*key:'$1' value:'\([^']*\)'.*/\1/p" <<<"$m" | head -1; }
+    rate=$(val clock.rate); q=$(val clock.quantum); fq=$(val clock.force-quantum)
+    [ "$rate" = 48000 ] && ok "sample rate 48000" || look "sample rate is ${rate:-unknown} (StageRig OS sets 48000)"
+    if [ -n "$fq" ] && [ "$fq" != 0 ]; then ok "buffer held at $fq samples by a program"
+    else ok "buffer ${q:-?} samples while idle; StageRig sets its own when it runs"; fi
+else
+    look "pw-metadata not found: cannot read the sample rate"
+fi
+jack=$(ldconfig -p 2>/dev/null | awk '/libjack\.so\.0 / {print $NF; exit}')
+case "$jack" in
+    *pipewire*) ok "JACK programs use PipeWire ($jack)" ;;
+    "")         look "no JACK library on the system path (StageRig finds pipewire-jack by itself)" ;;
+    *)          look "JACK programs load $jack, not PipeWire's" ;;
+esac
+if command -v powerprofilesctl >/dev/null; then ok "power profile: $(powerprofilesctl get 2>/dev/null) (StageRig holds performance while it runs)"
+else fix "power-profiles-daemon is missing: StageRig cannot hold the processor at full speed"; fi
+
+section "Audio interface"
+usb=$(grep -l . /proc/asound/card*/usbid 2>/dev/null | wc -l)
+if [ "$usb" -gt 0 ]; then
+    for c in /proc/asound/card*/usbid; do
+        n=$(basename "$(dirname "$c")"); n=${n#card}
+        ok "USB: $(sed -n "s/^ *$n \[[^]]*\]: //p" /proc/asound/cards)"
+    done
+    look "choose its Pro Audio profile once, in Volume Control (pavucontrol) > Configuration"
+else
+    look "no USB audio interface connected; only the computer's own sound"
+fi
+
+section "Desktop"
+grep -qs 'Unattended-Upgrade "0"' /etc/apt/apt.conf.d/99stagerig-manual-updates && ok "updates only when you ask" \
+    || look "automatic updates are on: they can start during a show"
+stamp=/var/lib/apt/lists; age=$(( ( $(date +%s) - $(stat -c %Y "$stamp" 2>/dev/null || date +%s) ) / 86400 ))
+[ "$age" -le 30 ] && ok "updates were last looked for $age day(s) ago" \
+    || look "no updates for $age days: sudo stagerig-os-update, when it suits you"
+command -v Xwayland >/dev/null && ok "Xwayland is installed (plugin windows, tablet mirror)" \
+    || fix "Xwayland is missing: sudo apt install xwayland"
+miss=""; for t in x11vnc websockify xdotool; do command -v "$t" >/dev/null || miss="$miss $t"; done
+[ -z "$miss" ] && ok "tablet mirror tools are installed" || look "tablet mirror needs:$miss"
+
+section "Programs"
+command -v StageRig >/dev/null && ok "StageRig $(dpkg-query -W -f='${Version}' stagerig 2>/dev/null)" \
+    || fix "StageRig is not installed: sudo apt install stagerig"
+flatpak info --user io.github.dguedry.vstenv >/dev/null 2>&1 && ok "VST Environment is installed" \
+    || look "VST Environment is not installed yet: it installs itself at login when online (only needed for Windows plugins)"
+sf=$(ls /usr/share/sounds/sf2/*.sf2 /usr/share/sounds/sf3/*.sf3 2>/dev/null | wc -l)
+[ "$sf" -gt 0 ] && ok "$sf soundfont(s) in /usr/share/sounds" || look "no soundfont installed: sudo apt install fluid-soundfont-gm"
+lv2=$(ls -d /usr/lib/lv2/*.lv2 /usr/lib/*/lv2/*.lv2 2>/dev/null | wc -l)
+[ "$lv2" -gt 0 ] && ok "$lv2 LV2 plugin bundles installed" || look "no native plugins installed"
+
+echo
+if [ "$bad" -gt 0 ]; then echo "$bad to fix, $warn to look at."; exit 1; fi
+echo "Nothing to fix; $warn to look at."
+echo "Then: play your heaviest setup and watch the ERR column of pw-top; it should stay at 0."

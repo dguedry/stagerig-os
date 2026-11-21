@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=StageRig OS first login
+Comment=Installs VST Environment for this user, once
+Exec=/usr/libexec/stagerig-os/first-login
+NoDisplay=true
+X-GNOME-Autostart-Delay=10

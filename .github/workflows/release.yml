@@ -1,0 +1,91 @@
+name: Package
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build the package
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq debhelper shellcheck
+      - name: Check the scripts
+        run: |
+          shellcheck install.sh scripts/build-apt-repo files/usr/bin/stagerig-os-check \
+                     files/usr/sbin/stagerig-os-update files/usr/libexec/stagerig-os/first-login \
+                     debian/postinst debian/postrm
+          python3 -c "import yaml,sys; yaml.safe_load(open('autoinstall.yaml'))"
+      - name: The tag is the changelog's version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          V=$(dpkg-parsechangelog -S Version)
+          [ "v$V" = "$GITHUB_REF_NAME" ] || { echo "debian/changelog says $V, the tag is $GITHUB_REF_NAME"; exit 1; }
+      - name: Build
+        run: |
+          dpkg-buildpackage -b -us -uc
+          mkdir pkgs && mv ../stagerig-os_*_all.deb pkgs/
+          dpkg-deb -I pkgs/*.deb && dpkg-deb -c pkgs/*.deb
+      - uses: actions/upload-artifact@v4
+        with: { name: deb, path: pkgs/*.deb }
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: '${{ github.token }}'
+        run: gh release create "$GITHUB_REF_NAME" pkgs/*.deb --title "$GITHUB_REF_NAME" --generate-notes
+
+  # The apt repository on GitHub Pages, made again after every release from the
+  # last ten releases' packages, with install.sh and autoinstall.yaml beside it.
+  # Signed with the STAGERIG_REPO_SIGNING_KEY secret (an armored private key
+  # with no passphrase). Run the workflow by hand to publish again without a release.
+  publish:
+    name: Publish the apt repository
+    needs: [build]
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq apt-utils gnupg
+      - name: The last ten releases' packages
+        env:
+          GH_TOKEN: '${{ github.token }}'
+        run: |
+          mkdir pkgs
+          for tag in $(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts --exclude-pre-releases --limit 10 --json tagName -q '.[].tagName'); do
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" -p '*.deb' -D pkgs --skip-existing || true
+          done
+          ls -la pkgs
+      - name: Signing key
+        env:
+          KEY: ${{ secrets.STAGERIG_REPO_SIGNING_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then echo "The STAGERIG_REPO_SIGNING_KEY secret is not set"; exit 1; fi
+          printf '%s\n' "$KEY" | gpg --batch --import
+      - name: Build the repository
+        run: |
+          OWNER="${GITHUB_REPOSITORY_OWNER,,}"
+          REPO="${GITHUB_REPOSITORY#*/}"
+          scripts/build-apt-repo pkgs site "https://$OWNER.github.io/$REPO"
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: site }
+      - id: deploy
+        uses: actions/deploy-pages@v4

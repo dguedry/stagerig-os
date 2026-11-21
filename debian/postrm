@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = remove ] || [ "$1" = purge ]; then
+    rm -f /etc/ld.so.conf.d/stagerig-pipewire-jack.conf
+    ldconfig || true
+    systemctl --global unmask localsearch-3.service tracker-miner-fs-3.service >/dev/null 2>&1 || true
+    command -v dconf >/dev/null 2>&1 && dconf update || true
+    if [ -e /boot/grub/grub.cfg ] && command -v update-grub >/dev/null 2>&1; then
+        update-grub || true
+    fi
+    if command -v snap >/dev/null 2>&1; then snap refresh --unhold >/dev/null 2>&1 || true; fi
+fi
+
+#DEBHELPER#

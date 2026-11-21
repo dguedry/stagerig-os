@@ -1,0 +1,12 @@
+#!/bin/sh
+# StageRig OS: bring everything up to date, when it suits you. Not before a show.
+set -e
+[ "$(id -u)" -eq 0 ] || { echo "Run it with sudo: sudo stagerig-os-update" >&2; exit 1; }
+apt-get update
+apt-get full-upgrade
+if command -v snap >/dev/null; then snap refresh || true; fi
+if command -v flatpak >/dev/null; then
+    flatpak update -y || true
+    [ -n "$SUDO_USER" ] && sudo -H -u "$SUDO_USER" flatpak update --user -y || true
+fi
+echo "Done. Restart if the kernel or the graphics driver was updated."

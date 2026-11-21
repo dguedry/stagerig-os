@@ -1,0 +1,9 @@
+# StageRig OS: the screen never blanks and the computer never sleeps by itself.
+# These are defaults; Settings can still change them for each user.
+[org/gnome/desktop/session]
+idle-delay=uint32 0
+
+[org/gnome/settings-daemon/plugins/power]
+sleep-inactive-ac-type='nothing'
+sleep-inactive-battery-type='nothing'
+idle-dim=false

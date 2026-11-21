@@ -1,0 +1,33 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = configure ]; then
+    # Every JACK program finds PipeWire's JACK library, without pw-jack.
+    jackdir=$(ls -d /usr/lib/*/pipewire-0.3/jack 2>/dev/null | head -n 1)
+    if [ -n "$jackdir" ]; then
+        echo "$jackdir" > /etc/ld.so.conf.d/stagerig-pipewire-jack.conf
+        ldconfig
+    fi
+
+    # The desktop defaults in /etc/dconf/db/local.d need the "local" database.
+    if [ ! -f /etc/dconf/profile/user ]; then
+        mkdir -p /etc/dconf/profile
+        printf 'user-db:user\nsystem-db:local\n' > /etc/dconf/profile/user
+    elif ! grep -q '^system-db:local$' /etc/dconf/profile/user; then
+        echo 'system-db:local' >> /etc/dconf/profile/user
+    fi
+    dconf update || true
+
+    # The file indexer reads the whole disk whenever it likes, sample libraries included.
+    systemctl --global mask localsearch-3.service tracker-miner-fs-3.service >/dev/null 2>&1 || true
+
+    sysctl -q -p /usr/lib/sysctl.d/90-stagerig.conf 2>/dev/null || true
+    modprobe -q ntsync 2>/dev/null || true
+
+    # The kernel options take effect at the next start.
+    if [ -e /boot/grub/grub.cfg ] && command -v update-grub >/dev/null 2>&1; then
+        update-grub || echo "stagerig-os: update-grub failed; run 'sudo update-grub'" >&2
+    fi
+fi
+
+#DEBHELPER#

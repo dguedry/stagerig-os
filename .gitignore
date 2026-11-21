@@ -1,0 +1,12 @@
+build/
+site/
+pkgs/
+debian/stagerig-os/
+debian/.debhelper/
+debian/files
+debian/*.substvars
+debian/*.debhelper*
+debian/debhelper-build-stamp
+*.deb
+*.buildinfo
+*.changes

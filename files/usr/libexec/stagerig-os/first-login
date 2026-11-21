@@ -1,0 +1,32 @@
+#!/bin/sh
+# StageRig OS: runs when a user logs in to the desktop. Installs VST Environment
+# (Windows plugins) for that user, once. It is a per-user program, so it cannot
+# be installed with the system. To skip it for a user:
+#   mkdir -p ~/.config/stagerig-os && touch ~/.config/stagerig-os/first-login-done
+
+dir="${XDG_CONFIG_HOME:-$HOME/.config}/stagerig-os"
+done_file="$dir/first-login-done"
+app=io.github.dguedry.vstenv
+[ -e "$done_file" ] && exit 0
+command -v flatpak >/dev/null || exit 0
+
+say() { notify-send -a "StageRig OS" -i audio-card "StageRig OS" "$1" 2>/dev/null || true; }
+finish() { mkdir -p "$dir" && : > "$done_file"; exit 0; }
+
+flatpak info --user "$app" >/dev/null 2>&1 && finish
+
+# Wait up to two minutes for the network.
+n=0
+until wget -q --spider https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null; do
+    n=$((n+1)); [ "$n" -ge 24 ] && exit 0      # offline: try again at the next login
+    sleep 5
+done
+
+say "Installing VST Environment, for Windows plugins. This takes a few minutes."
+if flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo \
+   && flatpak remote-add --user --if-not-exists vstenv https://dguedry.github.io/vstenv/vstenv.flatpakrepo \
+   && flatpak install --user --noninteractive vstenv "$app"; then
+    say "VST Environment is installed. Open it from the applications menu."
+    finish
+fi
+say "VST Environment could not be installed. It will be tried again at the next login."

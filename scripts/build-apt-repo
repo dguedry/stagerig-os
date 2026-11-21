@@ -1,0 +1,72 @@
+#!/bin/bash
+# Builds StageRig OS's apt repository and the files served beside it.
+#
+#   scripts/build-apt-repo <packages-dir> <site-dir> <base-url>
+#
+# <packages-dir> holds .deb files (any number of versions). <site-dir> is
+# written fresh: apt/, key.gpg, key.asc, install.sh, autoinstall.yaml,
+# index.html. <base-url> is where the site is served, e.g.
+# https://dguedry.github.io/stagerig-os
+#
+# Signs with the one secret key in gpg's keyring (GNUPGHOME). The release
+# workflow imports it from the STAGERIG_REPO_SIGNING_KEY secret.
+#
+# Needs apt-ftparchive (apt-utils) and gpg.
+set -euo pipefail
+
+PKGS="$1"; SITE="$2"; BASE="${3%/}"
+here="$(cd "$(dirname "$0")/.." && pwd)"
+
+rm -rf "$SITE"
+mkdir -p "$SITE/apt/pool/main" "$SITE/apt/dists/stable/main/binary-amd64" "$SITE/apt/dists/stable/main/binary-arm64"
+
+shopt -s nullglob
+debs=("$PKGS"/*.deb)
+[ ${#debs[@]} -gt 0 ] || { echo "no .deb in $PKGS"; exit 1; }
+cp "${debs[@]}" "$SITE/apt/pool/main/"
+
+sign() { gpg --batch --yes "$@"; }
+
+# One suite, "stable". The package is the same for every architecture, so it
+# is listed under each one.
+(
+  cd "$SITE/apt"
+  apt-ftparchive packages pool > dists/stable/main/binary-amd64/Packages
+  cp dists/stable/main/binary-amd64/Packages dists/stable/main/binary-arm64/Packages
+  gzip -9kn dists/stable/main/binary-amd64/Packages dists/stable/main/binary-arm64/Packages
+  apt-ftparchive \
+    -o APT::FTPArchive::Release::Origin="StageRig OS" \
+    -o APT::FTPArchive::Release::Label="StageRig OS" \
+    -o APT::FTPArchive::Release::Suite=stable \
+    -o APT::FTPArchive::Release::Codename=stable \
+    -o APT::FTPArchive::Release::Architectures="amd64 arm64" \
+    -o APT::FTPArchive::Release::Components=main \
+    -o APT::FTPArchive::Release::Description="StageRig OS releases" \
+    release dists/stable > dists/stable/Release
+  sign --clearsign -o dists/stable/InRelease dists/stable/Release
+  sign --armor --detach-sign -o dists/stable/Release.gpg dists/stable/Release
+)
+
+gpg --export > "$SITE/key.gpg"
+gpg --armor --export > "$SITE/key.asc"
+sed "s#https://dguedry.github.io/stagerig-os#$BASE#g" "$here/install.sh" > "$SITE/install.sh"
+sed "s#https://dguedry.github.io/stagerig-os#$BASE#g" "$here/autoinstall.yaml" > "$SITE/autoinstall.yaml"
+
+cat > "$SITE/index.html" <<HTML
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>StageRig OS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{font-family:system-ui,sans-serif;max-width:46rem;margin:2rem auto;padding:0 1rem;line-height:1.5}
+pre{background:#f3f3f3;padding:.8rem;overflow-x:auto}</style></head><body>
+<h1>StageRig OS</h1>
+<p>Sets a fresh Ubuntu 26.04 LTS Desktop up as a rig for playing music live.</p>
+<h2>On an installed Ubuntu</h2>
+<pre>wget -qO- $BASE/install.sh | sudo bash</pre>
+<h2>While installing Ubuntu</h2>
+<p>In the installer choose <em>Automated installation</em> and enter:</p>
+<pre>$BASE/autoinstall.yaml</pre>
+<p><a href="https://github.com/dguedry/stagerig-os">Source and documentation</a></p>
+</body></html>
+HTML
+
+echo "built $SITE: ${#debs[@]} .deb"

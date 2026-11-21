@@ -1,0 +1,7 @@
+stagerig-os (0.1.0) stable; urgency=medium
+
+  * First release: low-latency kernel options, realtime limits, PipeWire
+    and WirePlumber settings, a quiet desktop, StageRig with free plugins
+    and soundfonts, VST Environment at first login.
+
+ -- Donnie Guedry <dguedry@gmail.com>  Fri, 20 Nov 2026 20:00:00 -0600

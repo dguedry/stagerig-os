@@ -1,0 +1,66 @@
+Source: stagerig-os
+Section: sound
+Priority: optional
+Maintainer: Donnie Guedry <dguedry@gmail.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.7.0
+Homepage: https://github.com/dguedry/stagerig-os
+Vcs-Browser: https://github.com/dguedry/stagerig-os
+Vcs-Git: https://github.com/dguedry/stagerig-os.git
+Rules-Requires-Root: no
+
+Package: stagerig-os
+Architecture: all
+Depends:
+ ${misc:Depends},
+ stagerig,
+ pipewire-audio,
+ pipewire-jack,
+ pipewire-alsa,
+ wireplumber,
+ rtkit,
+ power-profiles-daemon,
+ alsa-utils,
+ xwayland,
+ flatpak,
+ dconf-cli,
+ libnotify-bin,
+ wget,
+ kmod,
+Recommends:
+ pavucontrol,
+ qpwgraph,
+ x11vnc,
+ websockify,
+ novnc,
+ xdotool,
+ poppler-utils,
+ libfluidsynth3,
+ fluid-soundfont-gm,
+ fluid-soundfont-gs,
+ musescore-general-soundfont,
+ setbfree,
+ zynaddsubfx-lv2,
+ avldrums.lv2,
+ dragonfly-reverb,
+ lsp-plugins-lv2,
+ x42-plugins,
+ calf-plugins,
+ guitarix-lv2,
+ zam-plugins,
+Description: turns Ubuntu into a rig for playing music live
+ Installing this package sets a stock Ubuntu desktop up for low-latency
+ audio and brings in what a live rig needs:
+ .
+  * kernel options for low latency (full preemption, threaded interrupts),
+    the same ones Ubuntu Studio boots with;
+  * realtime priority and locked memory for everyone who logs in;
+  * PipeWire at one fixed rate, as the JACK server for every JACK program,
+    with sound devices that are never put to sleep;
+  * no USB autosuspend, low swappiness, the ntsync driver for Wine;
+  * a desktop that does not blank, sleep, index files or update by itself;
+  * StageRig, a set of free instruments and effects, and General MIDI
+    soundfonts; VST Environment (Windows plugins) for each user at first login.
+ .
+ stagerig-os-check reports what is in order and what is not. Purging the
+ package (apt purge) undoes its settings.

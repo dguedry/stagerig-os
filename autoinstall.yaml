@@ -1,0 +1,36 @@
+# StageRig OS: lets Ubuntu's own installer set the rig up by itself.
+#
+# Start the stock Ubuntu 26.04 Desktop installer with the computer online. On
+# the page "What type of installation?", choose "Automated installation" and
+# enter:
+#
+#     https://dguedry.github.io/stagerig-os/autoinstall.yaml
+#
+# The installer still asks for the things only you know (language, keyboard,
+# network, which disk, your name and password, time zone). Everything else is
+# decided here: the minimal desktop without office software, graphics drivers
+# and media codecs, and StageRig OS installed at the end.
+
+autoinstall:
+  version: 1
+  interactive-sections:
+    - locale
+    - keyboard
+    - network
+    - storage
+    - identity
+    - timezone
+  source:
+    id: ubuntu-desktop-minimal
+  drivers:
+    install: true
+  codecs:
+    install: true
+  late-commands:
+    # The installer has already chosen the graphics driver (--no-drivers). If
+    # this step fails the installation still finishes; run the line from the
+    # README after the first start.
+    - >-
+      curtin in-target -- sh -c
+      'wget -qO- https://dguedry.github.io/stagerig-os/install.sh | bash -s -- --no-drivers
+      || echo "StageRig OS did not install; run install.sh after the first start" >&2'

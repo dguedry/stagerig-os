@@ -1,0 +1,12 @@
+[Unit]
+Description=StageRig OS: snaps update only when asked
+After=snapd.service snapd.seeded.service
+Wants=snapd.service
+ConditionPathExists=/usr/bin/snap
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/snap refresh --hold
+
+[Install]
+WantedBy=multi-user.target
