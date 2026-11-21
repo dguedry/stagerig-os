@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = remove ]; then
+    # Back to Ubuntu's boot screen.
+    update-alternatives --remove default.plymouth /usr/share/plymouth/themes/stagerig/stagerig.plymouth || true
+    dpkg-trigger update-initramfs || true
+fi
+
+#DEBHELPER#

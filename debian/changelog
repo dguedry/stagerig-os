@@ -1,3 +1,11 @@
+stagerig-os (0.2.0) stable; urgency=medium
+
+  * The StageRig look: the Signal Stage wallpaper on the desktop and the
+    lock screen, the dark style, a boot screen with the StageRig wordmark,
+    and the wordmark on the login screen.
+
+ -- Donnie Guedry <dguedry@gmail.com>  Sat, 21 Nov 2026 10:00:00 -0600
+
 stagerig-os (0.1.0) stable; urgency=medium
 
   * First release: low-latency kernel options, realtime limits, PipeWire

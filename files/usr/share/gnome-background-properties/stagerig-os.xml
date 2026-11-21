@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE wallpapers SYSTEM "gnome-wp-list.dtd">
+<wallpapers>
+  <wallpaper deleted="false">
+    <name>Signal Stage in Blue and Amber</name>
+    <filename>/usr/share/backgrounds/stagerig-os/signal-stage.png</filename>
+    <filename-dark>/usr/share/backgrounds/stagerig-os/signal-stage.png</filename-dark>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#030e1a</pcolor>
+    <scolor>#000309</scolor>
+  </wallpaper>
+</wallpapers>

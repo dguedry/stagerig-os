@@ -1,3 +1,15 @@
 #!/usr/bin/make -f
+
+THEME = debian/stagerig-os/usr/share/plymouth/themes/stagerig
+SPINNER = /usr/share/plymouth/themes/spinner
+
 %:
 	dh $@
+
+# The boot theme uses Plymouth's own spinner, lock and entry images beside the
+# StageRig wordmark. They are copied from plymouth-theme-spinner at build time
+# so that the theme's folder is complete: the initramfs takes that one folder.
+execute_after_dh_install:
+	cp $(SPINNER)/animation-*.png $(SPINNER)/throbber-*.png $(THEME)/
+	cp $(SPINNER)/bullet.png $(SPINNER)/capslock.png $(SPINNER)/entry.png \
+	   $(SPINNER)/keyboard.png $(SPINNER)/keymap-render.png $(SPINNER)/lock.png $(THEME)/

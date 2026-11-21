@@ -1,0 +1,24 @@
+# StageRig OS: the look of the desktop. These are defaults; Settings >
+# Appearance can still change them for each user. The number in the file name
+# puts it after Ubuntu's own defaults (10_ubuntu-settings), so these win.
+
+[org.gnome.desktop.background:ubuntu]
+picture-uri = 'file:///usr/share/backgrounds/stagerig-os/signal-stage.png'
+picture-uri-dark = 'file:///usr/share/backgrounds/stagerig-os/signal-stage.png'
+picture-options = 'zoom'
+primary-color = '#030e1a'
+
+[org.gnome.desktop.screensaver:ubuntu]
+picture-uri = 'file:///usr/share/backgrounds/stagerig-os/signal-stage.png'
+picture-options = 'zoom'
+primary-color = '#030e1a'
+
+# Dark, with Ubuntu's orange accent, which is the amber of the stage lights.
+[org.gnome.desktop.interface:ubuntu]
+color-scheme = 'prefer-dark'
+gtk-theme = 'Yaru-dark'
+accent-color = 'orange'
+
+# The logo at the bottom of the login screen.
+[org.gnome.login-screen]
+logo = '/usr/share/stagerig-os/logo.svg'

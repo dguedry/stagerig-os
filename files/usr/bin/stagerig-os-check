@@ -83,6 +83,9 @@ command -v Xwayland >/dev/null && ok "Xwayland is installed (plugin windows, tab
 miss=""; for t in x11vnc websockify xdotool; do command -v "$t" >/dev/null || miss="$miss $t"; done
 [ -z "$miss" ] && ok "tablet mirror tools are installed" || look "tablet mirror needs:$miss"
 
+if update-alternatives --query default.plymouth 2>/dev/null | grep -q '^Value: .*stagerig'; then ok "boot screen: StageRig"
+else look "the boot screen is not StageRig's: sudo apt install --reinstall stagerig-os"; fi
+
 section "Programs"
 command -v StageRig >/dev/null && ok "StageRig $(dpkg-query -W -f='${Version}' stagerig 2>/dev/null)" \
     || fix "StageRig is not installed: sudo apt install stagerig"

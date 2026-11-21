@@ -18,12 +18,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Tools
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq build-essential debhelper shellcheck
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq build-essential debhelper shellcheck plymouth-theme-spinner
       - name: Check the scripts
         run: |
           shellcheck -S warning install.sh scripts/build-apt-repo files/usr/bin/stagerig-os-check \
                      files/usr/sbin/stagerig-os-update files/usr/libexec/stagerig-os/first-login \
-                     debian/postinst debian/postrm
+                     debian/postinst debian/prerm debian/postrm
           python3 -c "import yaml,sys; yaml.safe_load(open('autoinstall.yaml'))"
       - name: The tag is the changelog's version
         if: startsWith(github.ref, 'refs/tags/v')

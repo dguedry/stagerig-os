@@ -24,6 +24,11 @@ if [ "$1" = configure ]; then
     sysctl -q -p /usr/lib/sysctl.d/90-stagerig.conf 2>/dev/null || true
     modprobe -q ntsync 2>/dev/null || true
 
+    # The boot screen: StageRig's theme ahead of Ubuntu's (which registers at 110).
+    update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth \
+        /usr/share/plymouth/themes/stagerig/stagerig.plymouth 200
+    dpkg-trigger update-initramfs || true
+
     # The kernel options take effect at the next start.
     if [ -e /boot/grub/grub.cfg ] && command -v update-grub >/dev/null 2>&1; then
         update-grub || echo "stagerig-os: update-grub failed; run 'sudo update-grub'" >&2

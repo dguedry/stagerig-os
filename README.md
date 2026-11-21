@@ -69,6 +69,19 @@ It only looks, and lists anything marked **FIX** or **LOOK**.
 | Screen never blanks, computer never sleeps | `/etc/dconf/db/local.d/00-stagerig` | Defaults; Settings can still change them |
 | File indexer off | masked in `/etc/systemd/user` | It reads whole sample libraries whenever it likes |
 
+It also gives the computer the StageRig look. All of it is a default that
+**Settings ▸ Appearance** can change:
+
+| | |
+|---|---|
+| Wallpaper, on the desktop and the lock screen | `/usr/share/backgrounds/stagerig-os/signal-stage.png` |
+| Dark style with the orange accent | `/usr/share/glib-2.0/schemas/90_stagerig-os.gschema.override` |
+| Boot, shutdown and disk-password screens: the StageRig wordmark over a spinner | Plymouth theme `stagerig` in `/usr/share/plymouth/themes` |
+| The wordmark on the login screen | `/usr/share/stagerig-os/logo.svg` |
+
+The artwork's sources are in [branding/](branding/). The logo the computer's
+maker shows when it is switched on comes from its firmware and is not changed.
+
 The buffer size is not set here: StageRig sets it while it runs (**Audio...** ▸
 *LEVEL AND LATENCY*, 128 samples by default) and holds the processor at full
 speed.
@@ -108,7 +121,7 @@ step.
 ## Building it
 
 ```sh
-sudo apt install debhelper
+sudo apt install build-essential debhelper plymouth-theme-spinner
 dpkg-buildpackage -b -us -uc          # ../stagerig-os_<version>_all.deb
 sudo ./install.sh --deb ../stagerig-os_*_all.deb    # try it on a fresh Ubuntu
 ```

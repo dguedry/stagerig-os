@@ -1,0 +1,61 @@
+[Plymouth Theme]
+Name=StageRig
+Description=The StageRig wordmark over a spinner, on the dark blue of the stage
+ModuleName=two-step
+
+[two-step]
+Font=Ubuntu 12
+TitleFont=Ubuntu Light 30
+ImageDir=/usr/share/plymouth/themes/stagerig
+DialogHorizontalAlignment=.5
+DialogVerticalAlignment=.7
+TitleHorizontalAlignment=.5
+TitleVerticalAlignment=.25
+HorizontalAlignment=.5
+VerticalAlignment=.68
+WatermarkHorizontalAlignment=.5
+WatermarkVerticalAlignment=.44
+Transition=none
+TransitionDuration=0.0
+BackgroundStartColor=0x05101c
+BackgroundEndColor=0x000309
+ProgressBarBackgroundColor=0x303840
+ProgressBarForegroundColor=0xe69327
+MessageBelowAnimation=true
+
+[boot-up]
+UseEndAnimation=false
+
+[shutdown]
+UseEndAnimation=false
+
+[reboot]
+UseEndAnimation=false
+
+[updates]
+SuppressMessages=true
+ProgressBarShowPercentComplete=true
+UseProgressBar=true
+Title=Installing Updates...
+SubTitle=Do not turn off your computer
+
+[system-upgrade]
+SuppressMessages=true
+ProgressBarShowPercentComplete=true
+UseProgressBar=true
+Title=Upgrading System...
+SubTitle=Do not turn off your computer
+
+[firmware-upgrade]
+SuppressMessages=true
+ProgressBarShowPercentComplete=true
+UseProgressBar=true
+Title=Upgrading Firmware...
+SubTitle=Do not turn off your computer
+
+[system-reset]
+SuppressMessages=true
+ProgressBarShowPercentComplete=true
+UseProgressBar=true
+Title=Resetting System...
+SubTitle=Do not turn off your computer

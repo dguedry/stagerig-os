@@ -2,7 +2,9 @@ Source: stagerig-os
 Section: sound
 Priority: optional
 Maintainer: Donnie Guedry <dguedry@gmail.com>
-Build-Depends: debhelper-compat (= 13)
+Build-Depends:
+ debhelper-compat (= 13),
+ plymouth-theme-spinner,
 Standards-Version: 4.7.0
 Homepage: https://github.com/dguedry/stagerig-os
 Vcs-Browser: https://github.com/dguedry/stagerig-os
@@ -27,6 +29,8 @@ Depends:
  libnotify-bin,
  wget,
  kmod,
+ plymouth-theme-spinner,
+ plymouth-label,
 Recommends:
  pavucontrol,
  qpwgraph,
@@ -59,6 +63,7 @@ Description: turns Ubuntu into a rig for playing music live
     with sound devices that are never put to sleep;
   * no USB autosuspend, low swappiness, the ntsync driver for Wine;
   * a desktop that does not blank, sleep, index files or update by itself;
+  * the StageRig look: wallpaper, dark style, boot and login screens;
   * StageRig, a set of free instruments and effects, and General MIDI
     soundfonts; VST Environment (Windows plugins) for each user at first login.
  .
