@@ -79,7 +79,7 @@ It also gives the computer the StageRig look. All of it is a default that
 | Boot, shutdown and disk-password screens: the StageRig wordmark over a spinner | Plymouth theme `stagerig` in `/usr/share/plymouth/themes` |
 | The wordmark on the login screen | `/usr/share/stagerig-os/logo.svg` |
 
-The artwork's sources are in [branding/](branding/). The logo the computer's
+The wordmark is in [branding/](branding/) and the wallpaper in [files/usr/share/backgrounds/](files/usr/share/backgrounds/stagerig-os/). The logo the computer's
 maker shows when it is switched on comes from its firmware and is not changed.
 
 The buffer size is not set here: StageRig sets it while it runs (**Audio...** ▸

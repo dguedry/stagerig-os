@@ -1,3 +1,10 @@
+stagerig-os (0.2.1) stable; urgency=medium
+
+  * The wallpaper at 3840x2160, sharp on any screen, and the wordmark
+    on the boot and login screens redrawn to match it.
+
+ -- Donnie Guedry <dguedry@gmail.com>  Sat, 21 Nov 2026 11:00:00 -0600
+
 stagerig-os (0.2.0) stable; urgency=medium
 
   * The StageRig look: the Signal Stage wallpaper on the desktop and the
