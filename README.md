@@ -117,7 +117,8 @@ A release is a version in `debian/changelog` and a matching tag (`v0.1.0`).
 The workflow builds the package, attaches it to the release, and publishes the
 signed apt repository, `install.sh` and `autoinstall.yaml` to GitHub Pages. It
 needs the repository secret `STAGERIG_REPO_SIGNING_KEY` (an armored private
-GPG key with no passphrase) and Pages set to deploy from GitHub Actions.
+GPG key with no passphrase) and Pages set to deploy from GitHub Actions. The
+key is this repository's own, separate from StageRig's.
 
 ## License
 

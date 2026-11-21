@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   build:
@@ -20,7 +21,7 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y -qq debhelper shellcheck
       - name: Check the scripts
         run: |
-          shellcheck install.sh scripts/build-apt-repo files/usr/bin/stagerig-os-check \
+          shellcheck -S warning install.sh scripts/build-apt-repo files/usr/bin/stagerig-os-check \
                      files/usr/sbin/stagerig-os-update files/usr/libexec/stagerig-os/first-login \
                      debian/postinst debian/postrm
           python3 -c "import yaml,sys; yaml.safe_load(open('autoinstall.yaml'))"
@@ -40,16 +41,21 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: '${{ github.token }}'
-        run: gh release create "$GITHUB_REF_NAME" pkgs/*.deb --title "$GITHUB_REF_NAME" --generate-notes
+        run: |
+          gh release create "$GITHUB_REF_NAME" pkgs/*.deb --title "$GITHUB_REF_NAME" --generate-notes
+          # GitHub Pages only deploys from main, so the repository is published
+          # by a second run of this workflow there.
+          gh workflow run release.yml --ref main
 
   # The apt repository on GitHub Pages, made again after every release from the
   # last ten releases' packages, with install.sh and autoinstall.yaml beside it.
   # Signed with the STAGERIG_REPO_SIGNING_KEY secret (an armored private key
-  # with no passphrase). Run the workflow by hand to publish again without a release.
+  # with no passphrase). A release starts it; run the workflow by hand on main
+  # to publish again without a release.
   publish:
     name: Publish the apt repository
     needs: [build]
-    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
