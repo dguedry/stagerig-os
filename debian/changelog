@@ -1,3 +1,12 @@
+stagerig-os (0.3.0) stable; urgency=medium
+
+  * The wallpaper comes in six screen shapes (16:9, 16:10, 3:2, 4:3, 21:9
+    and 32:9) and the one nearest the main screen is chosen at login and
+    whenever a screen is connected, so the wordmark sits in the corner on
+    every screen. On 16:9 it is back where it was drawn.
+
+ -- Donnie Guedry <dguedry@gmail.com>  Sat, 21 Nov 2026 18:40:00 -0600
+
 stagerig-os (0.2.2) stable; urgency=medium
 
   * The StageRig wordmark in the wallpaper moved in from the corner, so

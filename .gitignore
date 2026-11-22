@@ -10,3 +10,4 @@ debian/debhelper-build-stamp
 *.deb
 *.buildinfo
 *.changes
+__pycache__/

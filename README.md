@@ -74,13 +74,20 @@ It also gives the computer the StageRig look. All of it is a default that
 
 | | |
 |---|---|
-| Wallpaper, on the desktop and the lock screen | `/usr/share/backgrounds/stagerig-os/signal-stage.png` |
+| Wallpaper, on the desktop and the lock screen, cut to the shape of your screen | `/usr/share/backgrounds/stagerig-os/` |
 | Dark style with the orange accent | `/usr/share/glib-2.0/schemas/90_stagerig-os.gschema.override` |
 | Boot, shutdown and disk-password screens: the StageRig wordmark over a spinner | Plymouth theme `stagerig` in `/usr/share/plymouth/themes` |
 | The wordmark on the login screen | `/usr/share/stagerig-os/logo.svg` |
 
-The wordmark is in [branding/](branding/) and the wallpaper in [files/usr/share/backgrounds/](files/usr/share/backgrounds/stagerig-os/). The logo the computer's
-maker shows when it is switched on comes from its firmware and is not changed.
+The wallpaper comes in six shapes (16:9, 16:10, 3:2, 4:3, 21:9 and 32:9), so
+the wordmark sits in the corner on every screen. The one nearest your main
+screen is chosen when you log in and whenever a screen is connected. Pick any
+other wallpaper in Settings and yours is left alone.
+
+The wordmark and the wallpaper's parts are in [branding/](branding/);
+`scripts/make-wallpapers` cuts the shapes when the package is built. The logo
+the computer's maker shows when it is switched on comes from its firmware and
+is not changed.
 
 The buffer size is not set here: StageRig sets it while it runs (**Audio...** ▸
 *LEVEL AND LATENCY*, 128 samples by default) and holds the processor at full
@@ -121,7 +128,7 @@ step.
 ## Building it
 
 ```sh
-sudo apt install build-essential debhelper plymouth-theme-spinner
+sudo apt install build-essential debhelper plymouth-theme-spinner python3-pil
 dpkg-buildpackage -b -us -uc          # ../stagerig-os_<version>_all.deb
 sudo ./install.sh --deb ../stagerig-os_*_all.deb    # try it on a fresh Ubuntu
 ```

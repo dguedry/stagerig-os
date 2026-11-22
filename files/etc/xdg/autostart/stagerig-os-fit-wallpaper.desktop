@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=StageRig OS wallpaper
+Comment=Gives the screen the StageRig wallpaper cut to its shape
+Exec=/usr/libexec/stagerig-os/fit-wallpaper
+OnlyShowIn=GNOME;
+NoDisplay=true

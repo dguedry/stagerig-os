@@ -1,0 +1,147 @@
+#!/usr/bin/python3
+"""Give the screen the StageRig wallpaper cut to its shape.
+
+GNOME zooms one picture to fill the screen, so on anything but 16:9 it cuts
+the edges off, and the wordmark in the corner with them. The package holds
+the picture in several shapes; this picks the nearest to the main screen, at
+login and again whenever a screen is connected, removed or turned.
+
+It only ever swaps one StageRig picture for another. Choose any other
+wallpaper in Settings and it leaves that alone.
+
+    fit-wallpaper           stay and follow the screens (the autostart entry)
+    fit-wallpaper --once    set it and leave
+    fit-wallpaper --print   say what it would choose; change nothing
+"""
+import glob
+import math
+import os
+import sys
+
+import gi
+from gi.repository import Gio, GLib
+
+FOLDER = "/usr/share/backgrounds/stagerig-os"
+# The same shapes as scripts/make-wallpapers: file name, width / height.
+SHAPES = [
+    ("signal-stage.png", 16 / 9),
+    ("signal-stage-16x10.png", 16 / 10),
+    ("signal-stage-3x2.png", 3 / 2),
+    ("signal-stage-4x3.png", 4 / 3),
+    ("signal-stage-21x9.png", 43 / 18),
+    ("signal-stage-32x9.png", 32 / 9),
+]
+BUS_NAME = "org.gnome.Mutter.DisplayConfig"
+BUS_PATH = "/org/gnome/Mutter/DisplayConfig"
+
+
+def nearest(ratio):
+    """The picture whose shape is closest to this width / height."""
+    return min(SHAPES, key=lambda shape: abs(math.log(shape[1] / ratio)))[0]
+
+
+def ratio_from_state(state):
+    """Width / height of the main screen, from Mutter's GetCurrentState."""
+    _serial, monitors, logical_monitors, _properties = state
+    sizes = {}
+    for (connector, *_), modes, _props in monitors:
+        for _id, width, height, _rate, _scale, _scales, props in modes:
+            if props.get("is-current"):
+                sizes[connector] = (width, height)
+    chosen = None
+    for _x, _y, _scale, transform, primary, connectors, _props in logical_monitors:
+        size = next((sizes[c[0]] for c in connectors if c[0] in sizes), None)
+        if size is None:
+            continue
+        width, height = size
+        if transform % 2:               # turned a quarter: on its side
+            width, height = height, width
+        if primary or chosen is None:
+            chosen = width / height
+        if primary:
+            break
+    return chosen
+
+
+def ratio_from_mutter(bus):
+    reply = bus.call_sync(BUS_NAME, BUS_PATH, BUS_NAME, "GetCurrentState",
+                          None, None, Gio.DBusCallFlags.NONE, 5000, None)
+    return ratio_from_state(reply.unpack())
+
+
+def ratio_from_kernel():
+    """Without GNOME: the first connected screen's preferred size."""
+    for status in sorted(glob.glob("/sys/class/drm/card*-*/status")):
+        try:
+            with open(status) as f:
+                if f.read().strip() != "connected":
+                    continue
+            with open(os.path.join(os.path.dirname(status), "modes")) as f:
+                width, height = f.readline().strip().rstrip("i").split("x")
+            return int(width) / int(height)
+        except (OSError, ValueError):
+            continue
+    return None
+
+
+def screen_ratio(bus):
+    try:
+        ratio = ratio_from_mutter(bus)
+    except GLib.Error:
+        ratio = None
+    return ratio or ratio_from_kernel()
+
+
+def is_ours(uri):
+    return uri.startswith("file://" + FOLDER + "/")
+
+
+def apply(bus, dry_run=False):
+    ratio = screen_ratio(bus)
+    if not ratio:
+        return
+    path = os.path.join(FOLDER, nearest(ratio))
+    if dry_run:
+        print("screen %.3f : 1  ->  %s" % (ratio, path))
+        return
+    if not os.path.exists(path):
+        return
+    uri = "file://" + path
+    for schema, keys in (("org.gnome.desktop.background", ("picture-uri", "picture-uri-dark")),
+                         ("org.gnome.desktop.screensaver", ("picture-uri",))):
+        settings = Gio.Settings.new(schema)
+        for key in keys:
+            current = settings.get_string(key)
+            if is_ours(current) and current != uri:
+                settings.set_string(key, uri)
+    Gio.Settings.sync()
+
+
+def main():
+    option = sys.argv[1] if len(sys.argv) > 1 else ""
+    if option not in ("", "--once", "--print"):
+        sys.exit(__doc__)
+    bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+    apply(bus, dry_run=option == "--print")
+    if option:
+        return
+    # Screens settle over a moment when one is plugged in; wait for the last word.
+    pending = [0]
+
+    def later():
+        pending[0] = 0
+        apply(bus)
+        return GLib.SOURCE_REMOVE
+
+    def changed(*_):
+        if pending[0]:
+            GLib.source_remove(pending[0])
+        pending[0] = GLib.timeout_add_seconds(2, later)
+
+    bus.signal_subscribe(BUS_NAME, BUS_NAME, "MonitorsChanged", BUS_PATH,
+                         None, Gio.DBusSignalFlags.NONE, changed)
+    GLib.MainLoop().run()
+
+
+if __name__ == "__main__":
+    main()

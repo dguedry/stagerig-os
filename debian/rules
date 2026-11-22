@@ -13,3 +13,5 @@ execute_after_dh_install:
 	cp $(SPINNER)/animation-*.png $(SPINNER)/throbber-*.png $(THEME)/
 	cp $(SPINNER)/bullet.png $(SPINNER)/capslock.png $(SPINNER)/entry.png \
 	   $(SPINNER)/keyboard.png $(SPINNER)/keymap-render.png $(SPINNER)/lock.png $(THEME)/
+	# The wallpaper in each screen shape, from the background and the wordmark.
+	scripts/make-wallpapers branding debian/stagerig-os/usr/share/backgrounds/stagerig-os
