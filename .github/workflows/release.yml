@@ -25,7 +25,7 @@ jobs:
                      files/usr/sbin/stagerig-os-update files/usr/libexec/stagerig-os/first-login \
                      debian/postinst debian/prerm debian/postrm
           python3 -c "import yaml,sys; yaml.safe_load(open('autoinstall.yaml'))"
-          python3 -m py_compile scripts/make-wallpapers files/usr/libexec/stagerig-os/fit-wallpaper
+          python3 -m py_compile scripts/make-wallpapers files/usr/libexec/stagerig-os/fit-wallpaper files/usr/libexec/stagerig-os/pin-dock
       - name: The tag is the changelog's version
         if: startsWith(github.ref, 'refs/tags/v')
         run: |

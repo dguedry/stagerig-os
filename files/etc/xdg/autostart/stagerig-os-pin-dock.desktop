@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=StageRig OS dock
+Comment=Adds StageRig OS's launchers to a dock that has been rearranged, once each
+Exec=/usr/libexec/stagerig-os/pin-dock
+OnlyShowIn=GNOME;
+NoDisplay=true

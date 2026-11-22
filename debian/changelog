@@ -1,3 +1,11 @@
+stagerig-os (0.4.2) stable; urgency=medium
+
+  * A dock that has been rearranged gets StageRig, VST Environment, Volume
+    Control and qpwgraph too, at the next login. Each is added once; one
+    taken out afterwards stays out.
+
+ -- Donnie Guedry <dguedry@gmail.com>  Sun, 22 Nov 2026 17:15:00 -0600
+
 stagerig-os (0.4.1) stable; urgency=medium
 
   * The dock also holds the two sound tools, after StageRig and VST

@@ -1,0 +1,80 @@
+#!/usr/bin/python3
+"""Put StageRig OS's launchers in a dock its owner has already arranged.
+
+The package's dock is a default (90_stagerig-os.gschema.override), and a
+default stops applying to a user the first time they pin, unpin or move
+anything: from then on they have a list of their own, and a launcher added
+to the default never reaches it. This adds the ones that list is missing.
+
+Each launcher is offered once to each user. Take one out of the dock
+afterwards and it stays out. Nothing is ever removed, and a dock that was
+never touched is left to the default.
+
+    pin-dock            at login (the autostart entry)
+    pin-dock --print    say what it would add; change nothing
+"""
+import os
+import sys
+
+from gi.repository import Gio, GLib
+
+# In the order they stand at the head of the dock, as in the override.
+LAUNCHERS = [
+    "io.github.dguedry.StageRig.desktop",
+    "io.github.dguedry.vstenv.desktop",
+    "org.pulseaudio.pavucontrol.desktop",
+    "org.rncbc.qpwgraph.desktop",
+]
+
+
+def merged(mine, new):
+    """`mine` with each of `new` put after the launcher that stands before it."""
+    out = list(mine)
+    for name in LAUNCHERS:
+        if name in out or name not in new:
+            continue
+        before = [out.index(n) for n in LAUNCHERS[:LAUNCHERS.index(name)] if n in out]
+        out.insert(max(before) + 1 if before else 0, name)
+    return out
+
+
+def main():
+    dry = "--print" in sys.argv[1:]
+    source = Gio.SettingsSchemaSource.get_default()
+    if source is None or source.lookup("org.gnome.shell", True) is None:
+        return 0
+    shell = Gio.Settings.new("org.gnome.shell")
+
+    folder = os.path.join(GLib.get_user_config_dir(), "stagerig-os")
+    record = os.path.join(folder, "dock-offered")
+    try:
+        with open(record, encoding="utf-8") as f:
+            offered = f.read().split()
+    except OSError:
+        offered = []
+    new = [n for n in LAUNCHERS if n not in offered]
+    if not new:
+        return 0
+
+    mine = shell.get_user_value("favorite-apps")      # None: never arranged, so the default applies
+    if mine is not None:
+        mine = list(mine.unpack())
+        want = merged(mine, new)
+        if dry:
+            print("would add:", ", ".join(n for n in want if n not in mine) or "nothing")
+            return 0
+        if want != mine:
+            shell.set_strv("favorite-apps", want)
+            Gio.Settings.sync()
+    elif dry:
+        print("the dock is the default; nothing to add")
+        return 0
+
+    os.makedirs(folder, exist_ok=True)
+    with open(record, "w", encoding="utf-8") as f:
+        f.write("\n".join(offered + new) + "\n")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
