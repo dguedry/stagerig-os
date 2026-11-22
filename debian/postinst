@@ -21,6 +21,34 @@ if [ "$1" = configure ]; then
     # The file indexer reads the whole disk whenever it likes, sample libraries included.
     systemctl --global mask localsearch-3.service tracker-miner-fs-3.service >/dev/null 2>&1 || true
 
+    # Background services and timers that wake up at times of their own
+    # choosing. Each is switched off once and written down, so that removing
+    # the package switches the same ones back on, and one you switch on
+    # again yourself stays on through later updates.
+    #   systemd-oomd       ends programs when memory is tight; a rig full of samples is what it looks for
+    #   apport, whoopsie   write a crash report, the size of the program's memory, when a plugin dies
+    #   cups-browsed       searches the network for printers (printing still works)
+    #   ModemManager       probes USB serial devices for mobile modems
+    #   the timers         firmware lists, manual index, apt, Ubuntu Pro, file-name index: a timer that
+    #                      was missed while the computer was off runs just after it is switched on
+    #   fstrim.timer       stagerig-os-update trims the disk instead
+    record=/var/lib/stagerig-os/quieted
+    mkdir -p /var/lib/stagerig-os
+    touch "$record"
+    for unit in systemd-oomd.service systemd-oomd.socket \
+                apport.service apport-autoreport.path apport-autoreport.timer apport-forward.socket \
+                whoopsie.path whoopsie.service kerneloops.service \
+                cups-browsed.service ModemManager.service \
+                fwupd-refresh.timer man-db.timer apt-daily.timer apt-daily-upgrade.timer ua-timer.timer \
+                update-notifier-download.timer update-notifier-motd.timer motd-news.timer \
+                plocate-updatedb.timer fstrim.timer; do
+        grep -qx "$unit" "$record" && continue
+        [ "$(systemctl is-enabled "$unit" 2>/dev/null)" = enabled ] || continue
+        systemctl disable "$unit" >/dev/null 2>&1 || continue
+        echo "$unit" >> "$record"
+        if [ -d /run/systemd/system ]; then systemctl stop "$unit" >/dev/null 2>&1 || true; fi
+    done
+
     sysctl -q -p /usr/lib/sysctl.d/90-stagerig.conf 2>/dev/null || true
     modprobe -q ntsync 2>/dev/null || true
 

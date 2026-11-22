@@ -9,6 +9,15 @@ if [ "$1" = remove ] || [ "$1" = purge ]; then
     if [ -e /boot/grub/grub.cfg ] && command -v update-grub >/dev/null 2>&1; then
         update-grub || true
     fi
+    if [ -f /var/lib/stagerig-os/quieted ]; then
+        while read -r unit; do
+            [ -n "$unit" ] || continue
+            systemctl enable "$unit" >/dev/null 2>&1 || true
+            if [ -d /run/systemd/system ]; then systemctl start "$unit" >/dev/null 2>&1 || true; fi
+        done < /var/lib/stagerig-os/quieted
+        rm -f /var/lib/stagerig-os/quieted
+        rmdir /var/lib/stagerig-os 2>/dev/null || true
+    fi
     if command -v snap >/dev/null 2>&1; then snap refresh --unhold >/dev/null 2>&1 || true; fi
 fi
 

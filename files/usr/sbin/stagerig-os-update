@@ -9,4 +9,7 @@ if command -v flatpak >/dev/null; then
     flatpak update -y || true
     [ -n "$SUDO_USER" ] && sudo -H -u "$SUDO_USER" flatpak update --user -y || true
 fi
+# The jobs StageRig OS took off their timers.
+if command -v fstrim >/dev/null; then fstrim -a || true; fi
+if command -v fwupdmgr >/dev/null; then fwupdmgr refresh >/dev/null 2>&1 || true; fi
 echo "Done. Restart if the kernel or the graphics driver was updated."

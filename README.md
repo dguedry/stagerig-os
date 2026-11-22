@@ -67,6 +67,8 @@ It only looks, and lists anything marked **FIX** or **LOOK**.
 | `ntsync` loaded at start | `/usr/lib/modules-load.d/stagerig-os.conf` | Windows plugins use far less CPU |
 | No automatic updates (apt and snap) | `/etc/apt/apt.conf.d/99stagerig-manual-updates`, `stagerig-os-hold-snap-refresh.service` | Nothing downloads or restarts during a show |
 | Screen never blanks, computer never sleeps | `/etc/dconf/db/local.d/00-stagerig` | Defaults; Settings can still change them |
+| Background jobs off: the out-of-memory daemon, crash reports, printer search, modem probing, and the timers for firmware lists, the manual index, apt and the weekly disk trim | listed in `/var/lib/stagerig-os/quieted` | Each wakes when it likes, and one missed while the computer was off runs just after you switch it on. `stagerig-os-update` trims the disk and refreshes the firmware list instead |
+| Wifi power saving off | `/etc/NetworkManager/conf.d/stagerig-wifi-powersave-off.conf` | The radio stays awake, so the tablet does not pause |
 | File indexer off | masked in `/etc/systemd/user` | It reads whole sample libraries whenever it likes |
 
 It also gives the computer the StageRig look. All of it is a default that
@@ -106,7 +108,8 @@ Because nothing updates by itself, do it when it suits you, not before a show:
 sudo stagerig-os-update
 ```
 
-That updates Ubuntu, StageRig, StageRig OS, snaps and Flatpaks.
+That updates Ubuntu, StageRig, StageRig OS, snaps and Flatpaks, and trims
+the disk.
 `stagerig-os-check` reminds you after thirty days.
 
 ## When your audio interface arrives

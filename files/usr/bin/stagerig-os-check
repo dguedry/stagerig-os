@@ -37,6 +37,22 @@ ml=$(ulimit -l)
 if [ "$ml" = unlimited ]; then ok "locked memory: unlimited"
 else look "locked memory limit is $ml kB: log out and back in"; fi
 
+section "Background services"
+quiet=1
+for unit in systemd-oomd.service apport.service cups-browsed.service ModemManager.service \
+            fwupd-refresh.timer man-db.timer apt-daily.timer plocate-updatedb.timer fstrim.timer; do
+    if systemctl is-active --quiet "$unit" 2>/dev/null; then
+        look "$unit is running: sudo systemctl disable --now $unit"; quiet=0
+    fi
+done
+[ "$quiet" = 1 ] && ok "nothing that wakes up by itself is running"
+if command -v nmcli >/dev/null 2>&1 && nmcli -t -f TYPE,STATE device 2>/dev/null | grep -q '^wifi:connected'; then
+    look "wifi is connected: the radio searches for networks now and then; a cable is steadier for the tablet"
+fi
+if command -v rfkill >/dev/null 2>&1 && rfkill -n -o TYPE,SOFT 2>/dev/null | grep -q '^bluetooth *unblocked'; then
+    look "Bluetooth is on: switch it off in the top-right menu unless you use it"
+fi
+
 section "Sound system"
 for s in pipewire pipewire-pulse wireplumber; do
     systemctl --user is-active -q "$s" 2>/dev/null && ok "$s is running" || fix "$s is not running"

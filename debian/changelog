@@ -1,3 +1,16 @@
+stagerig-os (0.4.0) stable; urgency=medium
+
+  * Background services and timers that wake up by themselves are switched
+    off: systemd-oomd, crash reporting, cups-browsed, ModemManager, and the
+    timers for firmware lists, the manual index, apt, Ubuntu Pro and the
+    disk trim. Removing the package switches the same ones back on.
+  * stagerig-os-update trims the disk and refreshes the firmware list.
+  * Wifi power saving is off.
+  * stagerig-os-check has a Background services section, and mentions
+    wifi and Bluetooth when they are on.
+
+ -- Donnie Guedry <dguedry@gmail.com>  Sat, 21 Nov 2026 20:15:00 -0600
+
 stagerig-os (0.3.1) stable; urgency=medium
 
   * The dock holds StageRig, VST Environment, the browser and the file
