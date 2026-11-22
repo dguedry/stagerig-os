@@ -22,3 +22,14 @@ accent-color = 'orange'
 # The logo at the bottom of the login screen.
 [org.gnome.login-screen]
 logo = '/usr/share/stagerig-os/logo.svg'
+
+# The dock: StageRig and VST Environment first, then the browser and the file
+# manager. Ubuntu's own list has mail, music, office, the App Center and Help.
+# An entry whose program is not installed (VST Environment, until the first
+# login has fetched it) is simply not shown.
+[org.gnome.shell:ubuntu]
+favorite-apps = [ 'io.github.dguedry.StageRig.desktop', 'io.github.dguedry.vstenv.desktop', 'firefox_firefox.desktop', 'org.gnome.Nautilus.desktop' ]
+
+# No drives in the dock; they are in the file manager's side bar.
+[org.gnome.shell.extensions.dash-to-dock:ubuntu]
+show-mounts = false

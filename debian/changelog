@@ -1,3 +1,11 @@
+stagerig-os (0.3.1) stable; urgency=medium
+
+  * The dock holds StageRig, VST Environment, the browser and the file
+    manager, in place of Ubuntu's mail, music, office, App Center and Help.
+  * Drives are no longer shown in the dock; they are in the file manager.
+
+ -- Donnie Guedry <dguedry@gmail.com>  Sat, 21 Nov 2026 19:30:00 -0600
+
 stagerig-os (0.3.0) stable; urgency=medium
 
   * The wallpaper comes in six screen shapes (16:9, 16:10, 3:2, 4:3, 21:9

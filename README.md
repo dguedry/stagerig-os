@@ -76,6 +76,7 @@ It also gives the computer the StageRig look. All of it is a default that
 |---|---|
 | Wallpaper, on the desktop and the lock screen, cut to the shape of your screen | `/usr/share/backgrounds/stagerig-os/` |
 | Dark style with the orange accent | `/usr/share/glib-2.0/schemas/90_stagerig-os.gschema.override` |
+| The dock: StageRig, VST Environment, the browser and the file manager, and no drives | same file |
 | Boot, shutdown and disk-password screens: the StageRig wordmark over a spinner | Plymouth theme `stagerig` in `/usr/share/plymouth/themes` |
 | The wordmark on the login screen | `/usr/share/stagerig-os/logo.svg` |
 
