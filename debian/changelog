@@ -1,3 +1,10 @@
+stagerig-os (0.4.1) stable; urgency=medium
+
+  * The dock also holds the two sound tools, after StageRig and VST
+    Environment: Volume Control (pavucontrol) and qpwgraph.
+
+ -- Donnie Guedry <dguedry@gmail.com>  Sun, 22 Nov 2026 16:30:00 -0600
+
 stagerig-os (0.4.0) stable; urgency=medium
 
   * Background services and timers that wake up by themselves are switched
